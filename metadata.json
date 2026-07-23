@@ -1,0 +1,6 @@
+{
+  "name": "Sarv Mart Supermarket",
+  "description": "World-class supermarket platform for Sarv Mart Lucknow featuring fast delivery, AI search, POS billing system, admin management, and live order tracking.",
+  "requestFramePermissions": ["camera", "microphone", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
