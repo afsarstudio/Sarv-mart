@@ -41,7 +41,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSelectPage, onOpenAiMo
             </span>
           </div>
 
-          <h1 className="text-2xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] text-white">
+          <h1 className="text-fluid-h1 font-black tracking-tight leading-[1.1] text-white">
             Fresh Groceries & <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400">
               Daily Essentials
@@ -86,15 +86,6 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSelectPage, onOpenAiMo
             >
               <span>Explore Shop</span>
               <ArrowRight className="w-4 h-4" />
-            </button>
-
-            <button
-              id="hero-btn-ai-recipe"
-              onClick={onOpenAiModal}
-              className="flex items-center gap-2 bg-emerald-800/80 hover:bg-emerald-700/90 text-white font-bold text-sm px-5 py-3.5 rounded-2xl border border-emerald-600/60 transition-all hover:scale-105 active:scale-95"
-            >
-              <Sparkles className="w-4 h-4 text-amber-300" />
-              <span>AI Recipe Assistant</span>
             </button>
 
             <button

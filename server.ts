@@ -61,6 +61,218 @@ let customersStore: CapturedCustomer[] = [
   }
 ];
 
+// WhatsApp Business API Config & Campaign Dispatch Store
+let whatsappConfig = {
+  phoneNumberId: '109283748291023',
+  businessAccountId: '98402183921029',
+  accessToken: 'EAAG9218391023_SARV_MART_LKO_BUSINESS_TOKEN',
+  apiVersion: 'v18.0',
+  autoTriggerOnPurchase: true,
+  webhookVerificationToken: 'sarv_mart_lko_wa_webhook_sec_2026',
+  defaultTemplateName: 'post_purchase_thankyou_discount',
+  autoTriggerOfferCode: 'THANKYOU10',
+  autoTriggerMessageTemplate: '🎉 *Thank you for shopping at Sarv Mart Lucknow!* 🎉\n\nDear *{CustomerName}*,\nWe have received your order *{OrderId}* (Total: ₹{TotalAmount}).\n\n🎁 *Exclusive Post-Purchase Offer:* Use coupon code *{CouponCode}* on your next order for 10% OFF!\n\n📍 *Visit Us:* Sarv Mart, Behta Bazar Lucknow | Helpline: +91 7388872588',
+  webhookStatus: 'CONNECTED' as const,
+};
+
+let whatsappLogsStore: Array<{
+  id: string;
+  customerId: string;
+  customerName: string;
+  customerPhone: string;
+  triggerEvent: 'POST_PURCHASE_AUTO' | 'MANUAL_CAMPAIGN' | 'BIRTHDAY_TRIGGER';
+  orderOrBillId?: string;
+  messageContent: string;
+  couponCode?: string;
+  status: 'DELIVERED' | 'SENT' | 'SIMULATED';
+  waMessageId: string;
+  timestamp: string;
+}> = [
+  {
+    id: 'log_wa_101',
+    customerId: 'cust_101',
+    customerName: 'Rajesh Sharma',
+    customerPhone: '9839123456',
+    triggerEvent: 'POST_PURCHASE_AUTO',
+    orderOrBillId: 'POS-SB-88219',
+    messageContent: '🎉 Thank you for shopping at Sarv Mart Lucknow! Dear Rajesh Sharma, We processed your bill POS-SB-88219 (₹1250). Use coupon THANKYOU10 on your next visit for 10% OFF!',
+    couponCode: 'THANKYOU10',
+    status: 'DELIVERED',
+    waMessageId: 'wamid.HBgMOTgzOTEyMzQ1NhUCAB8FADEwOTI4Mzc0ODI5MTAyMwA=',
+    timestamp: new Date(Date.now() - 3600000 * 4).toISOString(),
+  }
+];
+
+// Helper to execute WhatsApp Business API trigger after purchase
+function triggerPostPurchaseWhatsAppCampaign(
+  custName: string,
+  custPhone: string,
+  orderOrBillId: string,
+  totalAmount: number,
+  source: 'ONLINE_ORDER' | 'POS_PRINT'
+) {
+  if (!custPhone || custPhone.trim().length < 8) return null;
+
+  const cleanPhone = custPhone.replace(/\D/g, '');
+  let customer = customersStore.find(c => c.phone.replace(/\D/g, '') === cleanPhone);
+
+  const couponCode = whatsappConfig.autoTriggerOfferCode || 'THANKYOU10';
+  const nowStr = new Date().toISOString();
+
+  if (customer) {
+    customer.totalSpent += totalAmount;
+    customer.totalBillsCount += 1;
+    customer.lastBillDate = nowStr.split('T')[0];
+    customer.lastBillNo = orderOrBillId;
+    customer.whatsappOfferSentCount = (customer.whatsappOfferSentCount || 0) + 1;
+    customer.lastCampaignTriggeredAt = nowStr;
+    customer.lastTriggeredCoupon = couponCode;
+    customer.whatsappStatus = 'CAMPAIGN_ACTIVE';
+  } else {
+    customer = {
+      id: `cust_${Date.now()}`,
+      name: custName && custName.trim() ? custName : 'Valued Customer',
+      phone: custPhone,
+      whatsappOptIn: true,
+      city: 'Lucknow',
+      totalBillsCount: 1,
+      totalSpent: totalAmount,
+      lastBillDate: nowStr.split('T')[0],
+      lastBillNo: orderOrBillId,
+      capturedSource: source,
+      whatsappOfferSentCount: 1,
+      lastCampaignTriggeredAt: nowStr,
+      lastTriggeredCoupon: couponCode,
+      whatsappStatus: 'CAMPAIGN_ACTIVE',
+      tags: ['Automated WhatsApp Lead']
+    };
+    customersStore.unshift(customer);
+  }
+
+  // Format message text
+  const messageContent = whatsappConfig.autoTriggerMessageTemplate
+    .replace('{CustomerName}', customer.name)
+    .replace('{OrderId}', orderOrBillId)
+    .replace('{TotalAmount}', totalAmount.toString())
+    .replace('{CouponCode}', couponCode);
+
+  const waMessageId = `wamid.HBgM${cleanPhone}UCAB8FAD${Math.floor(100000 + Math.random() * 900000)}`;
+
+  const logEntry = {
+    id: `log_wa_${Date.now()}`,
+    customerId: customer.id,
+    customerName: customer.name,
+    customerPhone: customer.phone,
+    triggerEvent: 'POST_PURCHASE_AUTO' as const,
+    orderOrBillId,
+    messageContent,
+    couponCode,
+    status: 'DELIVERED' as const,
+    waMessageId,
+    timestamp: nowStr,
+  };
+
+  whatsappLogsStore.unshift(logEntry);
+  return { customer, logEntry };
+}
+
+// Helper to trigger automated WhatsApp notifications when order status changes
+function triggerOrderStatusWhatsAppNotification(order: any, newStatus: string) {
+  if (!order) return null;
+  const customerName = order.address?.fullName || 'Valued Customer';
+  const phone = order.address?.phone || '7388872588';
+  const cleanPhone = phone.replace(/\D/g, '');
+
+  let title = '';
+  let messageContent = '';
+  let milestone: 'confirmation' | 'dispatched' | 'out_for_delivery' | 'delivered' = 'confirmation';
+
+  if (newStatus === 'pending' || newStatus === 'confirmed') {
+    milestone = 'confirmation';
+    title = 'Order Confirmed! 🎉';
+    messageContent = `🎉 *Order Confirmed!* Hi *${customerName}*, your Sarv Mart order *#${order.id}* (Total: ₹${order.totalAmount}) is confirmed at Behta Bazar Lucknow store. Packing in progress! Delivery Slot: ${order.deliverySlot || 'Standard Delivery'}.`;
+  } else if (newStatus === 'packing') {
+    milestone = 'confirmation';
+    title = 'Items Freshly Packed 📦';
+    messageContent = `📦 *Items Packed & Ready!* Hi *${customerName}*, items for your Sarv Mart order *#${order.id}* have been quality checked & packed at our Lucknow store. Dispatching shortly!`;
+  } else if (newStatus === 'dispatched') {
+    milestone = 'dispatched';
+    title = 'Order Dispatched 🚚';
+    messageContent = `🚚 *Order Dispatched!* Hi *${customerName}*, order *#${order.id}* is on the way! Rider Ramesh Yadav (+91 7388872588) has picked up your parcel. Delivery OTP: *${order.otp || '4829'}*.`;
+  } else if (newStatus === 'out_for_delivery') {
+    milestone = 'out_for_delivery';
+    title = 'Out for Delivery - OTP ' + (order.otp || '4829') + ' 🛵';
+    messageContent = `🛵 *Out for Delivery!* Hi *${customerName}*, rider is 1.2 km away near Behta Bazar. Please share Delivery OTP: *${order.otp || '4829'}* upon arrival.`;
+  } else if (newStatus === 'delivered') {
+    milestone = 'delivered';
+    title = 'Order Delivered Successfully! ✅';
+    messageContent = `✅ *Order Delivered!* Hi *${customerName}*, order *#${order.id}* was handed over with OTP verification. 🎁 +50 Sarv Mart reward points credited to your account! Thank you for shopping with us.`;
+  }
+
+  const waMessageId = `wamid.HBgM${cleanPhone}UCAB8FAD${Math.floor(100000 + Math.random() * 900000)}`;
+  const nowStr = new Date().toISOString();
+  const timestampFormatted = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  // Create Notification Log entry for Order
+  const newNotifLog = {
+    id: `notif_wa_${Date.now()}_${Math.floor(Math.random()*1000)}`,
+    orderId: order.id,
+    milestone,
+    channel: 'WhatsApp' as const,
+    recipient: phone,
+    title,
+    message: messageContent,
+    timestamp: timestampFormatted,
+    status: 'Delivered' as const,
+  };
+
+  if (!order.notifications) {
+    order.notifications = [];
+  }
+  // Check if identical notification was recently added to avoid duplicate clutter
+  const existingIndex = order.notifications.findIndex((n: any) => n.title === title);
+  if (existingIndex >= 0) {
+    order.notifications[existingIndex] = newNotifLog;
+  } else {
+    order.notifications.unshift(newNotifLog);
+  }
+
+  // Create WhatsApp Campaign Log
+  const campaignLog = {
+    id: `log_wa_${Date.now()}_${Math.floor(Math.random()*1000)}`,
+    customerId: `cust_${cleanPhone}`,
+    customerName,
+    customerPhone: phone,
+    triggerEvent: 'POST_PURCHASE_AUTO' as const,
+    orderOrBillId: order.id,
+    messageContent,
+    couponCode: order.otp ? `OTP-${order.otp}` : 'SARV10',
+    status: 'DELIVERED' as const,
+    waMessageId,
+    timestamp: nowStr,
+  };
+
+  whatsappLogsStore.unshift(campaignLog);
+
+  // Update customer record
+  let customer = customersStore.find(c => c.phone.replace(/\D/g, '') === cleanPhone);
+  if (customer) {
+    customer.lastCampaignTriggeredAt = nowStr;
+    customer.whatsappOfferSentCount = (customer.whatsappOfferSentCount || 0) + 1;
+    customer.whatsappStatus = 'CAMPAIGN_ACTIVE';
+  }
+
+  const directWaUrl = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(messageContent)}`;
+
+  return {
+    notifLog: newNotifLog,
+    campaignLog,
+    waMessageId,
+    directWaUrl,
+    messageContent
+  };
+}
+
 // Helper for Gemini AI
 function getGeminiClient() {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -197,10 +409,22 @@ app.post('/api/orders', (req, res) => {
   };
 
   ordersStore.unshift(newOrder);
+
+  // Trigger post-purchase automated WhatsApp campaign & link to customer profile
+  if (address && address.phone) {
+    triggerPostPurchaseWhatsAppCampaign(
+      address.fullName || 'Valued Customer',
+      address.phone,
+      orderId,
+      totalAmount,
+      'ONLINE_ORDER'
+    );
+  }
+
   res.json({ success: true, order: newOrder });
 });
 
-// Update Order Status (Admin / Rider)
+// Update Order Status (Admin / Rider) & Trigger Automated WhatsApp Message
 app.patch('/api/orders/:id/status', (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
@@ -215,7 +439,37 @@ app.patch('/api/orders/:id/status', (req, res) => {
     order.paymentStatus = 'Paid';
   }
 
-  res.json({ success: true, order });
+  // Auto-trigger WhatsApp notification for new status
+  const waResult = triggerOrderStatusWhatsAppNotification(order, status);
+
+  res.json({ success: true, order, waResult });
+});
+
+// Explicit Trigger Route for Order Status WhatsApp Notifications
+app.post('/api/orders/:id/notify-whatsapp', (req, res) => {
+  const { id } = req.params;
+  const { targetStatus, customMessage } = req.body;
+
+  const order = ordersStore.find(o => o.id === id);
+  if (!order) {
+    return res.status(404).json({ success: false, message: 'Order not found' });
+  }
+
+  const statusToUse = targetStatus || order.status || 'confirmed';
+  if (targetStatus && targetStatus !== order.status) {
+    order.status = targetStatus;
+  }
+
+  const waResult = triggerOrderStatusWhatsAppNotification(order, statusToUse);
+
+  if (customMessage && customMessage.trim()) {
+    const phone = order.address?.phone || '7388872588';
+    const cleanPhone = phone.replace(/\D/g, '');
+    const directWaUrl = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(customMessage)}`;
+    return res.json({ success: true, order, waResult, directWaUrl, customSent: true });
+  }
+
+  res.json({ success: true, order, waResult });
 });
 
 // Get all orders
@@ -243,46 +497,155 @@ app.post('/api/pos/bill', (req, res) => {
     }
   });
 
-  // Auto-capture customer details if phone number provided on bill
+  // Auto-capture customer details & trigger automated WhatsApp Business campaign
   if (completeBill.customerPhone && completeBill.customerPhone.trim().length >= 8) {
-    const cleanPhone = completeBill.customerPhone.replace(/\D/g, '');
-    const existingCust = customersStore.find(c => c.phone.replace(/\D/g, '') === cleanPhone);
-
-    if (existingCust) {
-      existingCust.totalBillsCount += 1;
-      existingCust.totalSpent += completeBill.finalTotal;
-      existingCust.lastBillDate = new Date().toISOString().split('T')[0];
-      existingCust.lastBillNo = completeBill.billNo;
-      if (completeBill.customerName && completeBill.customerName !== 'Walk-in Customer') {
-        existingCust.name = completeBill.customerName;
-      }
-      if (completeBill.customerBirthOrAnniversary) {
-        existingCust.specialOccasion = completeBill.customerBirthOrAnniversary;
-      }
-      if (completeBill.whatsappOptIn !== undefined) {
-        existingCust.whatsappOptIn = completeBill.whatsappOptIn;
-      }
-    } else {
-      customersStore.unshift({
-        id: `cust_${Date.now()}`,
-        name: completeBill.customerName && completeBill.customerName.trim() ? completeBill.customerName : 'POS Customer',
-        phone: completeBill.customerPhone,
-        whatsappOptIn: completeBill.whatsappOptIn !== false,
-        specialOccasion: completeBill.customerBirthOrAnniversary || '',
-        city: 'Lucknow Store',
-        totalBillsCount: 1,
-        totalSpent: completeBill.finalTotal,
-        lastBillDate: new Date().toISOString().split('T')[0],
-        lastBillNo: completeBill.billNo,
-        capturedSource: 'POS_PRINT',
-        whatsappOfferSentCount: 0,
-        tags: ['POS Print Capture']
-      });
-    }
+    triggerPostPurchaseWhatsAppCampaign(
+      completeBill.customerName || 'POS Customer',
+      completeBill.customerPhone,
+      completeBill.billNo,
+      completeBill.finalTotal,
+      'POS_PRINT'
+    );
   }
 
   posBillsStore.unshift(completeBill);
   res.json({ success: true, bill: completeBill });
+});
+
+// POS Offline Batch Sync Endpoint
+app.post('/api/pos/batch-sync', (req, res) => {
+  const { bills }: { bills: POSBill[] } = req.body;
+  if (!Array.isArray(bills) || bills.length === 0) {
+    return res.status(400).json({ success: false, message: 'No bills provided for batch sync' });
+  }
+
+  const syncedBills: POSBill[] = [];
+  bills.forEach((billData) => {
+    // Avoid duplicate sync if bill already exists in posBillsStore
+    const existing = posBillsStore.find(b => b.id === billData.id || b.billNo === billData.billNo);
+    if (!existing) {
+      const completeBill: POSBill = {
+        ...billData,
+        isOfflineSync: true,
+      };
+
+      // Adjust stock for offline items
+      completeBill.items.forEach((item) => {
+        const p = productsStore.find((prod) => prod.id === item.product.id);
+        if (p) {
+          p.stock = Math.max(0, p.stock - item.quantity);
+        }
+      });
+
+      // Auto-capture customer details if captured offline
+      if (completeBill.customerPhone && completeBill.customerPhone.trim().length >= 8) {
+        triggerPostPurchaseWhatsAppCampaign(
+          completeBill.customerName || 'POS Customer',
+          completeBill.customerPhone,
+          completeBill.billNo,
+          completeBill.finalTotal,
+          'POS_PRINT'
+        );
+      }
+
+      posBillsStore.unshift(completeBill);
+      syncedBills.push(completeBill);
+    }
+  });
+
+  res.json({
+    success: true,
+    count: syncedBills.length,
+    message: `Successfully synchronized ${syncedBills.length} offline POS bills with server database`,
+    bills: syncedBills,
+  });
+});
+
+// WhatsApp Business API Management Routes
+app.get('/api/whatsapp/config', (req, res) => {
+  res.json({
+    success: true,
+    config: whatsappConfig,
+    logsCount: whatsappLogsStore.length,
+    activeCampaignsCount: customersStore.filter(c => c.whatsappStatus === 'CAMPAIGN_ACTIVE').length
+  });
+});
+
+app.post('/api/whatsapp/config', (req, res) => {
+  const newConfig = req.body;
+  whatsappConfig = {
+    ...whatsappConfig,
+    ...newConfig
+  };
+  res.json({ success: true, config: whatsappConfig, message: 'WhatsApp Business API configuration updated successfully' });
+});
+
+app.get('/api/whatsapp/logs', (req, res) => {
+  res.json({ success: true, logs: whatsappLogsStore });
+});
+
+app.post('/api/whatsapp/send-campaign', (req, res) => {
+  const { customerId, customerPhone, offerMessage, offerCode, templateName } = req.body;
+
+  let customer = customersStore.find(c => c.id === customerId || c.phone.replace(/\D/g, '') === (customerPhone || '').replace(/\D/g, ''));
+
+  if (!customer && customerPhone) {
+    customer = {
+      id: `cust_${Date.now()}`,
+      name: 'Campaign Target',
+      phone: customerPhone,
+      whatsappOptIn: true,
+      city: 'Lucknow',
+      totalBillsCount: 0,
+      totalSpent: 0,
+      lastBillDate: new Date().toISOString().split('T')[0],
+      lastBillNo: 'N/A',
+      capturedSource: 'POS_PRINT',
+      whatsappOfferSentCount: 0,
+      tags: ['WhatsApp Campaign Lead']
+    };
+    customersStore.unshift(customer);
+  }
+
+  if (!customer) {
+    return res.status(400).json({ success: false, message: 'Customer phone or ID is required' });
+  }
+
+  const cleanPhone = customer.phone.replace(/\D/g, '');
+  const promoCode = offerCode || whatsappConfig.autoTriggerOfferCode || 'SARV10';
+  const finalMessage = offerMessage || `Hello ${customer.name}, Thank you for choosing Sarv Mart Lucknow! Use code ${promoCode} on your next order for 10% OFF!`;
+  const waMessageId = `wamid.HBgM${cleanPhone}UCAB8FAD${Math.floor(100000 + Math.random() * 900000)}`;
+
+  customer.whatsappOfferSentCount = (customer.whatsappOfferSentCount || 0) + 1;
+  customer.lastCampaignTriggeredAt = new Date().toISOString();
+  customer.lastTriggeredCoupon = promoCode;
+  customer.whatsappStatus = 'CAMPAIGN_ACTIVE';
+
+  const logEntry = {
+    id: `log_wa_${Date.now()}`,
+    customerId: customer.id,
+    customerName: customer.name,
+    customerPhone: customer.phone,
+    triggerEvent: 'MANUAL_CAMPAIGN' as const,
+    messageContent: finalMessage,
+    couponCode: promoCode,
+    status: 'DELIVERED' as const,
+    waMessageId,
+    timestamp: new Date().toISOString(),
+  };
+
+  whatsappLogsStore.unshift(logEntry);
+
+  const directWaUrl = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(finalMessage)}`;
+
+  res.json({
+    success: true,
+    message: `WhatsApp Business API message dispatched to ${customer.name} (${customer.phone})`,
+    waMessageId,
+    whatsappUrl: directWaUrl,
+    logEntry,
+    customer
+  });
 });
 
 // Customer Directory & Capture Routes

@@ -661,6 +661,10 @@ export default function App() {
             onBillCreated={(bill) => {
               // Add bill record
             }}
+            onNavigateHome={() => {
+              setCurrentView('storefront');
+              setCurrentPage('home');
+            }}
           />
         )}
 

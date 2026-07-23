@@ -18,9 +18,9 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
     <section className="my-8 mx-4 sm:mx-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+          <h2 className="text-fluid-h2 font-black text-gray-900 tracking-tight flex items-center gap-2">
             <span>Explore Categories</span>
-            <span className="text-xs bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full">
+            <span className="text-xs bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full shrink-0">
               {INITIAL_CATEGORIES.length} Categories
             </span>
           </h2>

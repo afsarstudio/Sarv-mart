@@ -69,10 +69,10 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex bg-gray-800/80 p-1 rounded-2xl border border-gray-700">
+        <div className="flex items-center bg-gray-800/80 p-1 rounded-2xl border border-gray-700 w-full sm:w-auto overflow-x-auto scrollbar-none shrink-0">
           <button
             onClick={() => setActiveTab('analytics')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
               activeTab === 'analytics' ? 'bg-amber-400 text-emerald-950 shadow-xs' : 'text-gray-300 hover:text-white'
             }`}
           >
@@ -80,7 +80,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('products')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
               activeTab === 'products' ? 'bg-amber-400 text-emerald-950 shadow-xs' : 'text-gray-300 hover:text-white'
             }`}
           >
@@ -88,7 +88,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('orders')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
               activeTab === 'orders' ? 'bg-amber-400 text-emerald-950 shadow-xs' : 'text-gray-300 hover:text-white'
             }`}
           >
@@ -96,11 +96,11 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('customers')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap ${
               activeTab === 'customers' ? 'bg-emerald-500 text-gray-950 shadow-xs' : 'text-gray-300 hover:text-white'
             }`}
           >
-            <MessageSquare className="w-3.5 h-3.5" />
+            <MessageSquare className="w-3.5 h-3.5 shrink-0" />
             <span>WhatsApp CRM & Offers</span>
           </button>
         </div>

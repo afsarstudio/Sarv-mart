@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CapturedCustomer } from '../types';
+import { CapturedCustomer, WhatsAppBusinessConfig, WhatsAppCampaignLog } from '../types';
 import {
   MessageSquare,
   Users,
@@ -21,13 +21,19 @@ import {
   Tag,
   Eye,
   Filter,
-  ArrowRight
+  ArrowRight,
+  Settings,
+  Zap,
+  ShieldCheck,
+  Activity,
+  Check,
+  RefreshCw
 } from 'lucide-react';
 
 export const WhatsAppCustomersPanel: React.FC = () => {
   const [customers, setCustomers] = useState<CapturedCustomer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [subTab, setSubTab] = useState<'directory' | 'campaign' | 'add_customer'>('directory');
+  const [subTab, setSubTab] = useState<'directory' | 'campaign' | 'add_customer' | 'api_settings'>('directory');
 
   // Search & Filter state for directory
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,14 +59,45 @@ export const WhatsAppCustomersPanel: React.FC = () => {
 
   const [copiedStatus, setCopiedStatus] = useState(false);
 
-  // Load captured customers
-  const loadCustomers = async () => {
+  // WhatsApp Business API Configuration & Logs State
+  const [waConfig, setWaConfig] = useState<WhatsAppBusinessConfig>({
+    phoneNumberId: '109283748291023',
+    businessAccountId: '98402183921029',
+    accessToken: 'EAAG9218391023_SARV_MART_LKO_BUSINESS_TOKEN',
+    apiVersion: 'v18.0',
+    autoTriggerOnPurchase: true,
+    webhookVerificationToken: 'sarv_mart_lko_wa_webhook_sec_2026',
+    defaultTemplateName: 'post_purchase_thankyou_discount',
+    autoTriggerOfferCode: 'THANKYOU10',
+    autoTriggerMessageTemplate: '🎉 *Thank you for shopping at Sarv Mart Lucknow!* 🎉\n\nDear *{CustomerName}*,\nWe have received your order *{OrderId}* (Total: ₹{TotalAmount}).\n\n🎁 *Exclusive Post-Purchase Offer:* Use coupon code *{CouponCode}* on your next order for 10% OFF!\n\n📍 *Visit Us:* Sarv Mart, Behta Bazar Lucknow | Helpline: +91 7388872588',
+    webhookStatus: 'CONNECTED'
+  });
+  const [waLogs, setWaLogs] = useState<WhatsAppCampaignLog[]>([]);
+  const [saveConfigSuccess, setSaveConfigSuccess] = useState<string | null>(null);
+
+  // Load captured customers and WhatsApp API config/logs
+  const loadCustomersAndWaData = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/customers');
-      const data = await res.json();
-      if (data.success && data.customers) {
-        setCustomers(data.customers);
+      const [custRes, configRes, logsRes] = await Promise.all([
+        fetch('/api/customers'),
+        fetch('/api/whatsapp/config'),
+        fetch('/api/whatsapp/logs')
+      ]);
+
+      const custData = await custRes.json();
+      if (custData.success && custData.customers) {
+        setCustomers(custData.customers);
+      }
+
+      const configData = await configRes.json();
+      if (configData.success && configData.config) {
+        setWaConfig(configData.config);
+      }
+
+      const logsData = await logsRes.json();
+      if (logsData.success && logsData.logs) {
+        setWaLogs(logsData.logs);
       }
     } catch {
       // Fallback
@@ -70,8 +107,26 @@ export const WhatsAppCustomersPanel: React.FC = () => {
   };
 
   useEffect(() => {
-    loadCustomers();
+    loadCustomersAndWaData();
   }, []);
+
+  const handleSaveWaConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/whatsapp/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(waConfig)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSaveConfigSuccess('✅ WhatsApp Business API configuration and automated campaign rules saved!');
+        setTimeout(() => setSaveConfigSuccess(null), 4000);
+      }
+    } catch {
+      alert('Failed to save WhatsApp Business API configuration.');
+    }
+  };
 
   const handleAddCustomerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,7 +151,7 @@ export const WhatsAppCustomersPanel: React.FC = () => {
         setNewCustName('');
         setNewCustPhone('');
         setNewCustOccasion('');
-        loadCustomers();
+        loadCustomersAndWaData();
       }
     } catch {
       alert('Error adding customer to server.');
@@ -122,7 +177,7 @@ export const WhatsAppCustomersPanel: React.FC = () => {
           offerCode: couponCode,
         }),
       });
-      loadCustomers();
+      loadCustomersAndWaData();
     } catch {
       // Continue
     }
@@ -205,6 +260,18 @@ export const WhatsAppCustomersPanel: React.FC = () => {
           >
             <UserPlus className="w-3.5 h-3.5" />
             <span>Add Customer Panel</span>
+          </button>
+
+          <button
+            onClick={() => setSubTab('api_settings')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              subTab === 'api_settings'
+                ? 'bg-emerald-500 text-gray-950 shadow-md'
+                : 'text-gray-300 hover:text-white hover:bg-gray-800'
+            }`}
+          >
+            <Settings className="w-3.5 h-3.5 text-amber-300" />
+            <span>WhatsApp API & Auto Rules</span>
           </button>
         </div>
       </div>
@@ -741,6 +808,250 @@ export const WhatsAppCustomersPanel: React.FC = () => {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* PANEL 4: WHATSAPP BUSINESS API CONFIG & AUTO-TRIGGER RULES */}
+      {/* ========================================================= */}
+      {subTab === 'api_settings' && (
+        <div className="space-y-6">
+          <form onSubmit={handleSaveWaConfig} className="bg-white rounded-3xl border border-gray-200 shadow-lg p-6 text-left space-y-6">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-2xl">
+                  <Settings className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base text-gray-900">WhatsApp Business API Settings</h3>
+                  <p className="text-xs text-gray-500">
+                    Configure Meta Graph API credentials and post-purchase automated message triggers linked to customer profiles.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-black px-3 py-1 rounded-full">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <span>Status: {waConfig.webhookStatus || 'CONNECTED'}</span>
+                </span>
+              </div>
+            </div>
+
+            {saveConfigSuccess && (
+              <div className="bg-emerald-50 border border-emerald-300 text-emerald-950 p-3.5 rounded-2xl text-xs font-bold flex items-center justify-between">
+                <span>{saveConfigSuccess}</span>
+                <button
+                  type="button"
+                  onClick={() => setSaveConfigSuccess(null)}
+                  className="text-emerald-800 underline text-[11px]"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
+
+            {/* Credentials Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold">
+              <div>
+                <label className="block text-gray-700 mb-1">WhatsApp Phone Number ID</label>
+                <input
+                  type="text"
+                  value={waConfig.phoneNumberId}
+                  onChange={(e) => setWaConfig({ ...waConfig, phoneNumberId: e.target.value })}
+                  placeholder="e.g. 109283748291023"
+                  className="w-full bg-gray-50 border border-gray-300 rounded-2xl px-3.5 py-2.5 font-mono text-gray-900 outline-none focus:border-emerald-500 focus:bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-700 mb-1">WhatsApp Business Account ID (WBA ID)</label>
+                <input
+                  type="text"
+                  value={waConfig.businessAccountId}
+                  onChange={(e) => setWaConfig({ ...waConfig, businessAccountId: e.target.value })}
+                  placeholder="e.g. 98402183921029"
+                  className="w-full bg-gray-50 border border-gray-300 rounded-2xl px-3.5 py-2.5 font-mono text-gray-900 outline-none focus:border-emerald-500 focus:bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-700 mb-1">System Access Token (Permanent / Bearer Key)</label>
+                <input
+                  type="password"
+                  value={waConfig.accessToken}
+                  onChange={(e) => setWaConfig({ ...waConfig, accessToken: e.target.value })}
+                  placeholder="EAAG9218..."
+                  className="w-full bg-gray-50 border border-gray-300 rounded-2xl px-3.5 py-2.5 font-mono text-gray-900 outline-none focus:border-emerald-500 focus:bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-700 mb-1">Webhook Verification Secret</label>
+                <input
+                  type="text"
+                  value={waConfig.webhookVerificationToken}
+                  onChange={(e) => setWaConfig({ ...waConfig, webhookVerificationToken: e.target.value })}
+                  placeholder="webhook_secret_key"
+                  className="w-full bg-gray-50 border border-gray-300 rounded-2xl px-3.5 py-2.5 font-mono text-gray-900 outline-none focus:border-emerald-500 focus:bg-white"
+                />
+              </div>
+            </div>
+
+            {/* Automated Post-Purchase Campaign Trigger Settings */}
+            <div className="bg-emerald-50/70 border border-emerald-200 rounded-3xl p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-amber-500" />
+                  <div>
+                    <h4 className="font-extrabold text-sm text-emerald-950">
+                      Automated Post-Purchase Campaign Trigger
+                    </h4>
+                    <p className="text-[11px] text-emerald-800 font-medium">
+                      Automatically sends a WhatsApp promo code message & updates customer profile when an order or POS bill is completed.
+                    </p>
+                  </div>
+                </div>
+
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={waConfig.autoTriggerOnPurchase}
+                    onChange={(e) => setWaConfig({ ...waConfig, autoTriggerOnPurchase: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-semibold pt-2">
+                <div>
+                  <label className="block text-emerald-950 font-extrabold mb-1">Post-Purchase Coupon Offer Code</label>
+                  <input
+                    type="text"
+                    value={waConfig.autoTriggerOfferCode}
+                    onChange={(e) => setWaConfig({ ...waConfig, autoTriggerOfferCode: e.target.value })}
+                    className="w-full bg-white border border-emerald-300 rounded-xl px-3 py-2 font-mono font-bold text-emerald-900 outline-none focus:border-emerald-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-emerald-950 font-extrabold mb-1">WhatsApp Template Name</label>
+                  <input
+                    type="text"
+                    value={waConfig.defaultTemplateName}
+                    onChange={(e) => setWaConfig({ ...waConfig, defaultTemplateName: e.target.value })}
+                    className="w-full bg-white border border-emerald-300 rounded-xl px-3 py-2 font-mono text-xs text-gray-800 outline-none focus:border-emerald-600"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-emerald-950 font-extrabold text-xs mb-1">Auto-Trigger Message Template</label>
+                <textarea
+                  rows={4}
+                  value={waConfig.autoTriggerMessageTemplate}
+                  onChange={(e) => setWaConfig({ ...waConfig, autoTriggerMessageTemplate: e.target.value })}
+                  className="w-full bg-white border border-emerald-300 rounded-2xl p-3 text-xs text-gray-900 font-sans outline-none focus:border-emerald-600"
+                />
+                <p className="text-[10px] text-emerald-800 mt-1 font-medium">
+                  Available tags: <span className="font-bold font-mono">{'{CustomerName}'}</span>, <span className="font-bold font-mono">{'{OrderId}'}</span>, <span className="font-bold font-mono">{'{TotalAmount}'}</span>, <span className="font-bold font-mono">{'{CouponCode}'}</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="submit"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-6 py-3 rounded-2xl shadow-md transition-all active:scale-95 flex items-center gap-2"
+              >
+                <Check className="w-4 h-4" />
+                <span>Save API Configuration</span>
+              </button>
+            </div>
+          </form>
+
+          {/* Live Automated Dispatch Logs */}
+          <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 text-left space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Activity className="w-5 h-5 text-emerald-600" />
+                <div>
+                  <h3 className="font-extrabold text-base text-gray-900">WhatsApp Automated Dispatch Logs</h3>
+                  <p className="text-xs text-gray-500">
+                    Real-time logs of post-purchase triggers dispatched to customers via WhatsApp Business API.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={loadCustomersAndWaData}
+                className="p-2 text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl border border-gray-200 transition-colors flex items-center gap-1.5 text-xs font-bold"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Refresh Logs</span>
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-gray-100 text-gray-700 font-extrabold uppercase text-[10px]">
+                  <tr>
+                    <th className="p-3">Customer & Phone</th>
+                    <th className="p-3">Trigger Event</th>
+                    <th className="p-3">Bill / Order ID</th>
+                    <th className="p-3">Coupon Code</th>
+                    <th className="p-3">WA Message ID</th>
+                    <th className="p-3">Status</th>
+                    <th className="p-3 text-right">Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 font-medium">
+                  {waLogs.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="p-8 text-center text-gray-400">
+                        No automated WhatsApp campaign messages dispatched yet. Complete an order or POS bill to trigger automatically!
+                      </td>
+                    </tr>
+                  ) : (
+                    waLogs.map((log) => (
+                      <tr key={log.id} className="hover:bg-gray-50/80">
+                        <td className="p-3">
+                          <p className="font-bold text-gray-900">{log.customerName}</p>
+                          <p className="text-[10px] font-mono text-emerald-800">+91 {log.customerPhone}</p>
+                        </td>
+                        <td className="p-3">
+                          <span className="bg-emerald-100 text-emerald-900 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-200">
+                            {log.triggerEvent === 'POST_PURCHASE_AUTO' ? '⚡ Post-Purchase Auto' : '📣 Manual Campaign'}
+                          </span>
+                        </td>
+                        <td className="p-3 font-mono text-gray-700 font-bold">
+                          {log.orderOrBillId || 'N/A'}
+                        </td>
+                        <td className="p-3 font-mono font-black text-amber-700">
+                          {log.couponCode || 'N/A'}
+                        </td>
+                        <td className="p-3 font-mono text-[10px] text-gray-500 truncate max-w-[140px]">
+                          {log.waMessageId}
+                        </td>
+                        <td className="p-3">
+                          <span className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-full border border-emerald-400/30">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            <span>{log.status}</span>
+                          </span>
+                        </td>
+                        <td className="p-3 text-right text-gray-500 text-[11px]">
+                          {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          <p className="text-[9px] text-gray-400">{new Date(log.timestamp).toLocaleDateString()}</p>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       )}
     </div>

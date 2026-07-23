@@ -117,15 +117,15 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
         <div className="bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 text-white p-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-amber-400 text-emerald-950 rounded-2xl shadow-md font-black">
-              <ChefHat className="w-6 h-6" />
+              <Search className="w-6 h-6" />
             </div>
             <div>
               <h2 className="text-xl font-black tracking-tight flex items-center gap-2">
-                <span>Sarv AI Chef & Recipe Search</span>
+                <span>Sarv Mart Smart Product Search</span>
                 <Sparkles className="w-4 h-4 text-amber-300" />
               </h2>
               <p className="text-xs text-emerald-100 font-medium">
-                Ask anything! Voice search recipes, dish ingredients or daily essentials.
+                Type or use voice search to quickly find groceries, brand items and daily household needs.
               </p>
             </div>
           </div>

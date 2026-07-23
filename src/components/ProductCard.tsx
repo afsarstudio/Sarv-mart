@@ -136,17 +136,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         {/* Price & Quantity Add Action */}
-        <div className="pt-2 border-t border-gray-100 flex items-center justify-between gap-2">
+        <div className="pt-2 border-t border-gray-100 flex items-center justify-between gap-1.5 min-w-0">
           {/* Price */}
-          <div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-base sm:text-lg font-black text-gray-900">₹{product.price}</span>
+          <div className="min-w-0">
+            <div className="flex items-baseline gap-1 flex-wrap">
+              <span className="text-fluid-price font-black text-gray-900 tracking-tight">₹{product.price}</span>
               {product.mrp > product.price && (
-                <span className="text-xs text-gray-400 line-through">₹{product.mrp}</span>
+                <span className="text-[11px] text-gray-400 line-through">₹{product.mrp}</span>
               )}
             </div>
             {product.mrp > product.price && (
-              <p className="text-[10px] text-emerald-700 font-bold">
+              <p className="text-[10px] text-emerald-700 font-bold truncate">
                 Save ₹{product.mrp - product.price}
               </p>
             )}

@@ -66,11 +66,11 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-xs transition-all">
       {/* Top Bar - Lucknow Store Contact & Delivery Announcement */}
-      <div className="bg-emerald-800 text-white text-xs py-1.5 px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
-        <div className="flex items-center gap-4 text-emerald-100 font-medium">
-          <span className="flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5 text-amber-300" />
-            <span>Behta Bazar, NKS Plaza, Lucknow (226026)</span>
+      <div className="bg-emerald-800 text-white text-xs py-1.5 px-3 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 overflow-hidden">
+        <div className="flex items-center gap-3 text-emerald-100 font-medium text-[11px] sm:text-xs">
+          <span className="flex items-center gap-1 shrink-0">
+            <MapPin className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+            <span className="truncate max-w-[200px] sm:max-w-none">Behta Bazar, NKS Plaza, Lucknow</span>
           </span>
           <span className="hidden md:flex items-center gap-1">
             <Clock className="w-3.5 h-3.5 text-emerald-300" />
@@ -82,18 +82,18 @@ export const Navbar: React.FC<NavbarProps> = ({
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 bg-emerald-700/80 px-2 py-0.5 rounded-full text-amber-200 font-semibold text-[11px] whitespace-nowrap">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end overflow-x-auto scrollbar-none py-0.5">
+          <div className="hidden sm:flex items-center gap-1 bg-emerald-700/80 px-2 py-0.5 rounded-full text-amber-200 font-semibold text-[10px] sm:text-[11px] whitespace-nowrap shrink-0">
             <Truck className="w-3 h-3 text-amber-300 animate-pulse" />
-            <span>Delivery within 12 minute</span>
+            <span>Delivery in 12 min</span>
           </div>
 
           {/* Mode Switcher Pill */}
-          <div className="flex items-center bg-emerald-900/80 p-0.5 rounded-lg border border-emerald-700">
+          <div className="flex items-center bg-emerald-900/90 p-0.5 rounded-lg border border-emerald-700 shrink-0 max-w-full overflow-x-auto scrollbar-none">
             <button
               id="nav-btn-storefront"
               onClick={() => onSelectView('storefront')}
-              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all ${
+              className={`px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-medium transition-all whitespace-nowrap ${
                 currentView === 'storefront' ? 'bg-amber-400 text-emerald-950 font-bold shadow-xs' : 'text-emerald-200 hover:text-white'
               }`}
             >
@@ -102,95 +102,194 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               id="nav-btn-pos"
               onClick={() => onSelectView('pos')}
-              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all flex items-center gap-1 ${
+              className={`px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-medium transition-all flex items-center gap-1 whitespace-nowrap ${
                 currentView === 'pos' ? 'bg-amber-400 text-emerald-950 font-bold shadow-xs' : 'text-emerald-200 hover:text-white'
               }`}
             >
-              <Receipt className="w-3 h-3" />
+              <Receipt className="w-3 h-3 shrink-0" />
               <span>POS Billing</span>
             </button>
             <button
               id="nav-btn-admin"
               onClick={() => onSelectView('admin')}
-              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all flex items-center gap-1 ${
+              className={`px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-medium transition-all flex items-center gap-1 whitespace-nowrap ${
                 currentView === 'admin' ? 'bg-amber-400 text-emerald-950 font-bold shadow-xs' : 'text-emerald-200 hover:text-white'
               }`}
             >
-              <BarChart3 className="w-3 h-3" />
-              <span>Inventory & Admin</span>
+              <BarChart3 className="w-3 h-3 shrink-0" />
+              <span className="hidden sm:inline">Inventory & Admin</span>
+              <span className="sm:hidden">Admin</span>
             </button>
             <button
               id="nav-btn-delivery"
               onClick={() => onSelectView('delivery')}
-              className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all flex items-center gap-1 ${
+              className={`px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-medium transition-all flex items-center gap-1 whitespace-nowrap ${
                 currentView === 'delivery' ? 'bg-amber-400 text-emerald-950 font-bold shadow-xs' : 'text-emerald-200 hover:text-white'
               }`}
             >
-              <Truck className="w-3 h-3" />
-              <span>Rider App</span>
+              <Truck className="w-3 h-3 shrink-0" />
+              <span className="hidden sm:inline">Rider App</span>
+              <span className="sm:hidden">Rider</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Main Navbar Row */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
-        {/* Brand Logo & Name */}
-        <div className="flex items-center gap-3">
-          <button
-            id="nav-logo-btn"
-            onClick={() => {
-              onSelectView('storefront');
-              onSelectPage('home');
-            }}
-            className="flex items-center gap-2.5 text-left group"
-          >
-            <div className="w-11 h-11 rounded-full bg-white p-1 border border-emerald-200 shadow-md shadow-emerald-600/10 group-hover:scale-105 transition-transform overflow-hidden flex items-center justify-center shrink-0">
-              <img
-                src={STORE_DETAILS.logoUrl}
-                alt={STORE_DETAILS.name}
-                className="w-full h-full object-contain rounded-full"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-            <div>
-              <div className="flex items-center gap-1">
-                <span className="font-extrabold text-2xl tracking-tight text-gray-900 group-hover:text-emerald-600 transition-colors">
-                  Sarv<span className="text-emerald-600">Mart</span>
-                </span>
-                <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-amber-300">
-                  LKO
-                </span>
+      {/* Main Navbar Container */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 space-y-2 sm:space-y-0">
+        <div className="flex items-center justify-between gap-2 sm:gap-4">
+          {/* Brand Logo & Name */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <button
+              id="nav-logo-btn"
+              onClick={() => {
+                onSelectView('storefront');
+                onSelectPage('home');
+              }}
+              className="flex items-center gap-2 text-left group"
+            >
+              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white p-0.5 sm:p-1 border border-emerald-200 shadow-md shadow-emerald-600/10 group-hover:scale-105 transition-transform overflow-hidden flex items-center justify-center shrink-0">
+                <img
+                  src={STORE_DETAILS.logoUrl}
+                  alt={STORE_DETAILS.name}
+                  className="w-full h-full object-contain rounded-full"
+                  referrerPolicy="no-referrer"
+                />
               </div>
-              <p className="text-[10px] text-gray-500 font-medium tracking-wide uppercase">Supermarket • Lucknow</p>
-            </div>
-          </button>
+              <div>
+                <div className="flex items-center gap-1">
+                  <span className="font-extrabold text-xl sm:text-2xl tracking-tight text-gray-900 group-hover:text-emerald-600 transition-colors">
+                    Sarv<span className="text-emerald-600">Mart</span>
+                  </span>
+                  <span className="bg-amber-100 text-amber-800 text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-amber-300">
+                    LKO
+                  </span>
+                </div>
+                <p className="text-[9px] sm:text-[10px] text-gray-500 font-medium tracking-wide uppercase hidden sm:block">Supermarket • Lucknow</p>
+              </div>
+            </button>
 
-          {/* Location Picker */}
-          <button
-            id="nav-location-picker"
-            onClick={onOpenLocationModal}
-            className="hidden xl:flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100/80 text-emerald-900 border border-emerald-200/80 px-3 py-1.5 rounded-xl text-xs transition-colors"
-          >
-            <div className="p-1 bg-emerald-600 text-white rounded-lg">
-              <MapPin className="w-3.5 h-3.5" />
+            {/* Location Picker */}
+            <button
+              id="nav-location-picker"
+              onClick={onOpenLocationModal}
+              className="hidden lg:flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100/80 text-emerald-900 border border-emerald-200/80 px-2.5 py-1.5 rounded-xl text-xs transition-colors"
+            >
+              <div className="p-1 bg-emerald-600 text-white rounded-lg">
+                <MapPin className="w-3.5 h-3.5" />
+              </div>
+              <div className="text-left leading-tight">
+                <p className="text-[9px] text-emerald-700 font-semibold uppercase">Delivering to</p>
+                <p className="font-bold text-gray-900 flex items-center gap-1 text-[11px]">
+                  <span>PIN {selectedPincode} (Behta Bazar)</span>
+                  <ChevronDown className="w-3 h-3 text-gray-500" />
+                </p>
+              </div>
+            </button>
+          </div>
+
+          {/* Desktop Search Bar (Hidden on mobile, shown on sm+) */}
+          <div className="hidden sm:block flex-1 max-w-xl mx-2 relative">
+            <div className="relative flex items-center">
+              <Search className="w-4 h-4 absolute left-3.5 text-gray-400 pointer-events-none" />
+              <input
+                id="main-search-input-desktop"
+                type="text"
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    onSelectView('storefront');
+                    onSelectPage('shop');
+                  }
+                }}
+                placeholder='Search "Aashirvaad Atta", "Paneer", "Fresh Fruits"...'
+                className="w-full bg-gray-50/80 focus:bg-white border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-2xl pl-10 pr-24 py-2.5 text-xs sm:text-sm text-gray-900 placeholder-gray-400 transition-all outline-none"
+              />
+
+              {/* Search Action Button */}
+              <button
+                id="nav-search-btn-desktop"
+                onClick={() => {
+                  onSelectView('storefront');
+                  onSelectPage('shop');
+                }}
+                className="absolute right-1.5 flex items-center gap-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-xs transition-all hover:scale-105 active:scale-95"
+                title="Search Catalog"
+              >
+                <Search className="w-3.5 h-3.5 text-amber-300" />
+                <span>Search</span>
+              </button>
             </div>
-            <div className="text-left leading-tight">
-              <p className="text-[10px] text-emerald-700 font-semibold uppercase">Delivering to</p>
-              <p className="font-bold text-gray-900 flex items-center gap-1">
-                <span>PIN {selectedPincode} (Behta Bazar)</span>
-                <ChevronDown className="w-3 h-3 text-gray-500" />
-              </p>
-            </div>
-          </button>
+          </div>
+
+          {/* Right Navigation Actions */}
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+            {/* Wishlist Button */}
+            <button
+              id="nav-wishlist-btn"
+              onClick={() => {
+                onSelectView('customer_account');
+              }}
+              className="relative p-2 text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors hidden sm:flex"
+              title="Wishlist"
+            >
+              <Heart className="w-5 h-5" />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center">
+                  {wishlistCount}
+                </span>
+              )}
+            </button>
+
+            {/* User Account Button */}
+            <button
+              id="nav-account-btn"
+              onClick={() => {
+                onSelectView('customer_account');
+              }}
+              className="flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-2 text-gray-700 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-colors font-medium text-xs"
+            >
+              <div className="w-7 h-7 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center font-bold text-xs border border-emerald-200">
+                <User className="w-4 h-4" />
+              </div>
+              <span className="hidden md:inline font-semibold text-gray-800">Account</span>
+            </button>
+
+            {/* Cart Button */}
+            <button
+              id="nav-cart-btn"
+              onClick={onOpenCart}
+              className="relative flex items-center gap-1.5 sm:gap-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-2xl shadow-md shadow-emerald-600/20 transition-all transform active:scale-95"
+            >
+              <div className="relative">
+                <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-amber-400 text-emerald-950 font-black text-[10px] sm:text-[11px] w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center shadow-xs animate-bounce">
+                    {cartCount}
+                  </span>
+                )}
+              </div>
+              <span className="font-bold text-xs hidden xs:inline">Cart</span>
+            </button>
+
+            {/* Mobile Menu Toggle */}
+            <button
+              id="nav-mobile-menu-btn"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-1.5 text-gray-600 hover:text-gray-900 sm:hidden"
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
 
-        {/* AI Powered Search Bar */}
-        <div className="flex-1 max-w-xl mx-2 relative">
+        {/* Mobile Full-Width Search Bar */}
+        <div className="block sm:hidden w-full relative">
           <div className="relative flex items-center">
             <Search className="w-4 h-4 absolute left-3.5 text-gray-400 pointer-events-none" />
             <input
-              id="main-search-input"
+              id="main-search-input-mobile"
               type="text"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
@@ -200,82 +299,20 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onSelectPage('shop');
                 }
               }}
-              placeholder='Search "Aashirvaad Atta", "Paneer", "Fresh Fruits", "Mustard Oil"...'
-              className="w-full bg-gray-50/80 focus:bg-white border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-2xl pl-10 pr-24 py-2.5 text-sm text-gray-900 placeholder-gray-400 transition-all outline-none"
+              placeholder='Search Atta, Oil, Milk, Fresh Veggies...'
+              className="w-full bg-gray-50 focus:bg-white border border-gray-200 focus:border-emerald-500 rounded-2xl pl-10 pr-20 py-2 text-xs text-gray-900 placeholder-gray-400 transition-all outline-none"
             />
-
-            {/* Smart AI Voice Search Button */}
             <button
-              id="nav-ai-assistant-btn"
-              onClick={onOpenAiModal}
-              className="absolute right-1.5 flex items-center gap-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-semibold px-2.5 py-1.5 rounded-xl shadow-xs transition-all hover:scale-105 active:scale-95"
-              title="AI Chef & Recipe Search"
+              id="nav-search-btn-mobile"
+              onClick={() => {
+                onSelectView('storefront');
+                onSelectPage('shop');
+              }}
+              className="absolute right-1 flex items-center gap-1 bg-emerald-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-xl"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-spin-slow" />
-              <span className="hidden sm:inline">AI Recipe</span>
-              <Mic className="w-3 h-3 text-emerald-200" />
+              <span>Search</span>
             </button>
           </div>
-        </div>
-
-        {/* Right Navigation Actions */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Wishlist Button */}
-          <button
-            id="nav-wishlist-btn"
-            onClick={() => {
-              onSelectView('customer_account');
-            }}
-            className="relative p-2.5 text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors hidden sm:flex"
-            title="Wishlist"
-          >
-            <Heart className="w-5 h-5" />
-            {wishlistCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center">
-                {wishlistCount}
-              </span>
-            )}
-          </button>
-
-          {/* User Account Button */}
-          <button
-            id="nav-account-btn"
-            onClick={() => {
-              onSelectView('customer_account');
-            }}
-            className="flex items-center gap-2 p-2 sm:px-3 sm:py-2 text-gray-700 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-colors font-medium text-xs"
-          >
-            <div className="w-7 h-7 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center font-bold text-xs border border-emerald-200">
-              <User className="w-4 h-4" />
-            </div>
-            <span className="hidden md:inline font-semibold text-gray-800">Account</span>
-          </button>
-
-          {/* Cart Button */}
-          <button
-            id="nav-cart-btn"
-            onClick={onOpenCart}
-            className="relative flex items-center gap-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-3.5 py-2 rounded-2xl shadow-md shadow-emerald-600/20 transition-all transform active:scale-95"
-          >
-            <div className="relative">
-              <ShoppingCart className="w-5 h-5 text-amber-300" />
-              {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-amber-400 text-emerald-950 font-black text-[11px] w-5 h-5 rounded-full flex items-center justify-center shadow-xs animate-bounce">
-                  {cartCount}
-                </span>
-              )}
-            </div>
-            <span className="hidden sm:inline font-bold text-xs">My Cart</span>
-          </button>
-
-          {/* Mobile Menu Toggle */}
-          <button
-            id="nav-mobile-menu-btn"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 text-gray-600 hover:text-gray-900 md:hidden"
-          >
-            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
         </div>
       </div>
 

@@ -171,6 +171,36 @@ export interface CapturedCustomer {
   capturedSource: 'POS_PRINT' | 'ONLINE_ORDER';
   whatsappOfferSentCount?: number;
   tags?: string[];
+  lastCampaignTriggeredAt?: string;
+  lastTriggeredCoupon?: string;
+  whatsappStatus?: 'OPTED_IN' | 'CAMPAIGN_ACTIVE' | 'OPTED_OUT';
+}
+
+export interface WhatsAppBusinessConfig {
+  phoneNumberId: string;
+  businessAccountId: string;
+  accessToken: string;
+  apiVersion: string;
+  autoTriggerOnPurchase: boolean;
+  webhookVerificationToken: string;
+  defaultTemplateName: string;
+  autoTriggerOfferCode: string;
+  autoTriggerMessageTemplate: string;
+  webhookStatus: 'CONNECTED' | 'DISCONNECTED' | 'SIMULATED_TEST';
+}
+
+export interface WhatsAppCampaignLog {
+  id: string;
+  customerId: string;
+  customerName: string;
+  customerPhone: string;
+  triggerEvent: 'POST_PURCHASE_AUTO' | 'MANUAL_CAMPAIGN' | 'BIRTHDAY_TRIGGER';
+  orderOrBillId?: string;
+  messageContent: string;
+  couponCode?: string;
+  status: 'DELIVERED' | 'SENT' | 'SIMULATED';
+  waMessageId: string;
+  timestamp: string;
 }
 
 export interface Coupon {
