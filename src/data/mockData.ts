@@ -526,8 +526,43 @@ export const MOCK_USER_PROFILE: UserProfile = {
   phone: '+91 7388872588',
   email: 'afsarsdr4@gmail.com',
   rewardPoints: 340, // Sarv Coins
+  points: 340,
   walletBalance: 150.0,
   defaultPincode: '226026',
+  loyaltyHistory: [
+    {
+      id: 'TXN-901',
+      date: '2026-07-22 18:30',
+      orderId: 'ORD-98421',
+      description: 'Points earned from Order #ORD-98421 (Grocery & Dairy)',
+      points: 42,
+      type: 'EARNED',
+      orderTotal: 423.00,
+    },
+    {
+      id: 'TXN-880',
+      date: '2026-07-15 11:10',
+      orderId: 'POS-SB-91728',
+      description: 'POS Billing Counter purchase at NKS Plaza Lucknow',
+      points: 68,
+      type: 'EARNED',
+      orderTotal: 668.00,
+    },
+    {
+      id: 'TXN-750',
+      date: '2026-07-01 09:00',
+      description: 'Sarv Mart New Account Welcome Loyalty Bonus',
+      points: 250,
+      type: 'BONUS',
+    },
+    {
+      id: 'TXN-610',
+      date: '2026-06-20 14:20',
+      description: 'Redeemed points for ₹20 Supermarket Coupon (SARV20)',
+      points: -20,
+      type: 'REDEEMED',
+    }
+  ],
   savedAddresses: [
     {
       fullName: 'Afsar Sardar',

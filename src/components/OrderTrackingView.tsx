@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Order, OrderStatus, NotificationLog, NotificationMilestone } from '../types';
+import { Order, OrderStatus, NotificationLog, NotificationMilestone, UserProfile } from '../types';
 import {
   Truck,
   MapPin,
@@ -36,12 +36,14 @@ interface OrderTrackingViewProps {
   order: Order | null;
   onBackToShop: () => void;
   onUpdateOrderStatus?: (orderId: string, status: OrderStatus) => void;
+  userProfile?: UserProfile;
 }
 
 export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({
   order,
   onBackToShop,
   onUpdateOrderStatus,
+  userProfile,
 }) => {
   if (!order) {
     return (
@@ -424,6 +426,41 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Floating Real-Time Loyalty Points Update Animation Banner */}
+      {(() => {
+        const earnedPoints = Math.floor(currentOrder.totalAmount / 10);
+        if (earnedPoints <= 0) return null;
+        const currentPoints = userProfile?.points ?? userProfile?.rewardPoints ?? 250;
+
+        return (
+          <div className="bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 text-emerald-950 p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-2xl border-2 border-amber-200 flex flex-col sm:flex-row items-center justify-between gap-3 animate-pulse">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 bg-emerald-950 text-amber-300 rounded-2xl flex items-center justify-center font-black shadow-md shrink-0">
+                <Sparkles className="w-6 h-6 animate-spin text-amber-300" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-black text-sm sm:text-base tracking-tight text-emerald-950">
+                    +{earnedPoints} Sarv Loyalty Points Earned!
+                  </span>
+                  <span className="bg-emerald-950 text-amber-300 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase font-mono">
+                    Real-Time Updated
+                  </span>
+                </div>
+                <p className="text-xs text-emerald-950 font-bold mt-0.5">
+                  100% credited on ₹{currentOrder.totalAmount.toFixed(2)} order total at Behta Bazar Lucknow store.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-emerald-950 text-white px-4 py-2 rounded-2xl font-mono text-center shrink-0 w-full sm:w-auto">
+              <span className="text-[10px] uppercase text-amber-300 block font-sans font-bold">Updated Total Loyalty Balance</span>
+              <span className="text-lg font-black text-amber-300">{currentPoints} Pts</span>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Top Banner Header */}
       <div className="bg-gradient-to-r from-emerald-900 via-emerald-800 to-green-900 text-white p-6 sm:p-8 rounded-3xl shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border border-emerald-700/50">

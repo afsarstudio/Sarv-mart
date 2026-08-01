@@ -45,7 +45,14 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Data Stores
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
+    return (localStorage.getItem('sarv_theme_mode') as ThemeMode) || 'emerald';
+  });
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+
+  useEffect(() => {
+    localStorage.setItem('sarv_theme_mode', themeMode);
+  }, [themeMode]);
   const [cart, setCart] = useState<CartItem[]>([
     { product: INITIAL_PRODUCTS[0], quantity: 1 }, // Default initial sample item
     { product: INITIAL_PRODUCTS[8], quantity: 2 },
@@ -140,6 +147,28 @@ export default function App() {
   const handleOrderPlaced = (newOrder: Order) => {
     setOrders((prev) => [newOrder, ...prev]);
     setActiveTrackOrder(newOrder);
+    
+    // Award loyalty points: 1 point per ₹10 spent
+    const earnedPoints = Math.floor(newOrder.totalAmount / 10);
+    if (earnedPoints > 0) {
+      const newTxn = {
+        id: `TXN-${newOrder.id.replace(/[^0-9]/g, '') || Math.floor(Math.random() * 10000)}`,
+        orderId: newOrder.id,
+        date: new Date().toISOString().slice(0, 16).replace('T', ' '),
+        description: `Points earned on Order #${newOrder.id}`,
+        points: earnedPoints,
+        type: 'EARNED' as const,
+        orderTotal: newOrder.totalAmount,
+      };
+
+      setUserProfile((prev) => ({
+        ...prev,
+        points: (prev.points ?? prev.rewardPoints ?? 0) + earnedPoints,
+        rewardPoints: (prev.rewardPoints ?? 0) + earnedPoints,
+        loyaltyHistory: [newTxn, ...(prev.loyaltyHistory || [])],
+      }));
+    }
+
     setCart([]);
     setCurrentView('storefront');
     setCurrentPage('track_order');
@@ -637,6 +666,7 @@ export default function App() {
             {currentPage === 'track_order' && (
               <OrderTrackingView
                 order={activeTrackOrder}
+                userProfile={userProfile}
                 onBackToShop={() => setCurrentPage('shop')}
                 onUpdateOrderStatus={(orderId, status) => {
                   handleUpdateOrderStatus(orderId, status);
@@ -694,6 +724,8 @@ export default function App() {
             userProfile={userProfile}
             orders={orders}
             wishlistProducts={wishlist}
+            currentTheme={themeMode}
+            onSelectTheme={setThemeMode}
             onReorder={(order) => {
               setCart(order.items);
               setCurrentView('storefront');

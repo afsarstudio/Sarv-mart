@@ -215,16 +215,30 @@ export interface Coupon {
   isActive: boolean;
 }
 
+export interface LoyaltyTransaction {
+  id: string;
+  orderId?: string;
+  date: string;
+  description: string;
+  points: number;
+  type: 'EARNED' | 'REDEEMED' | 'BONUS' | 'REFUND';
+  orderTotal?: number;
+}
+
 export interface UserProfile {
   name: string;
   phone: string;
   email: string;
   rewardPoints: number;
+  points: number;
   walletBalance: number;
   savedAddresses: OrderAddress[];
   defaultPincode: string;
   gstin?: string;
+  loyaltyHistory?: LoyaltyTransaction[];
 }
+
+export type ThemeMode = 'emerald' | 'midnight' | 'ocean' | 'harvest';
 
 export interface CustomerReview {
   id: string;
