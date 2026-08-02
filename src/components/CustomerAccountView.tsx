@@ -29,7 +29,8 @@ import {
   Clock,
   Check,
   Coins,
-  Filter
+  Filter,
+  FileSpreadsheet
 } from 'lucide-react';
 
 interface CustomerAccountViewProps {
@@ -73,6 +74,70 @@ export const CustomerAccountView: React.FC<CustomerAccountViewProps> = ({
     } finally {
       setDownloadingOrderId(null);
     }
+  };
+
+  const handleDownloadCsv = () => {
+    if (!orders || orders.length === 0) {
+      alert('No order history available to export.');
+      return;
+    }
+
+    const headers = [
+      'Order ID',
+      'Invoice Number',
+      'Order Date',
+      'Status',
+      'Payment Method',
+      'Payment Status',
+      'Items Summary',
+      'Total Items Count',
+      'Subtotal (INR)',
+      'Discount (INR)',
+      'Delivery Fee (INR)',
+      'Total Paid (INR)'
+    ];
+
+    const escapeCsv = (str: string | number | undefined) => {
+      if (str === undefined || str === null) return '""';
+      const stringified = String(str).replace(/"/g, '""');
+      return `"${stringified}"`;
+    };
+
+    const rows = orders.map((o) => {
+      const itemsSummary = o.items
+        .map((it) => `${it.product.name} (x${it.quantity} ${it.product.unit || 'unit'})`)
+        .join('; ');
+      const totalItemsCount = o.items.reduce((acc, it) => acc + it.quantity, 0);
+
+      return [
+        escapeCsv(o.id),
+        escapeCsv(o.invoiceNumber || o.id),
+        escapeCsv(o.createdAt ? o.createdAt.slice(0, 10) : ''),
+        escapeCsv(o.status),
+        escapeCsv(o.paymentMethod),
+        escapeCsv(o.paymentStatus || 'Paid'),
+        escapeCsv(itemsSummary),
+        escapeCsv(totalItemsCount),
+        escapeCsv(o.subtotal ? o.subtotal.toFixed(2) : '0.00'),
+        escapeCsv(o.discount ? o.discount.toFixed(2) : '0.00'),
+        escapeCsv(o.deliveryFee ? o.deliveryFee.toFixed(2) : '0.00'),
+        escapeCsv(o.totalAmount ? o.totalAmount.toFixed(2) : '0.00'),
+      ].join(',');
+    });
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `SarvMart_Order_History_${userProfile.name.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    setDownloadSuccessMsg(`Order history CSV (${orders.length} orders) downloaded successfully!`);
+    setTimeout(() => setDownloadSuccessMsg(null), 4000);
   };
 
   // Consolidate Loyalty Transactions Log
@@ -604,14 +669,29 @@ export const CustomerAccountView: React.FC<CustomerAccountViewProps> = ({
       {/* TAB CONTENT 3: RECENT ORDERS */}
       {activeTab === 'orders' && (
         <div className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-gray-200 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-            <h2 className="text-lg font-black text-gray-900 flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-emerald-600" />
-              <span>Recent Supermarket Orders</span>
-            </h2>
-            <span className="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-              {orders.length} Past Orders
-            </span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 pb-3 gap-3">
+            <div>
+              <h2 className="text-lg font-black text-gray-900 flex items-center gap-2">
+                <ShoppingBag className="w-5 h-5 text-emerald-600" />
+                <span>Recent Supermarket Orders</span>
+              </h2>
+              <p className="text-xs text-gray-500 mt-0.5">View tax invoices, reorder past items, or export your complete order statement.</p>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={handleDownloadCsv}
+                className="flex items-center gap-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold px-3.5 py-2 rounded-xl text-xs shadow-2xs transition-all active:scale-95"
+                title="Download CSV file of all order records for personal bookkeeping"
+              >
+                <FileSpreadsheet className="w-4 h-4 text-amber-300" />
+                <span>Download Order History (CSV)</span>
+              </button>
+
+              <span className="text-xs font-bold text-gray-600 bg-gray-100 border border-gray-200 px-3 py-2 rounded-xl">
+                {orders.length} Orders
+              </span>
+            </div>
           </div>
 
           <div className="space-y-4">
