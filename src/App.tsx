@@ -35,7 +35,8 @@ import { CustomerAccountView } from './components/CustomerAccountView';
 import { StaticPages } from './components/StaticPages';
 import { Footer } from './components/Footer';
 
-import { Filter, SlidersHorizontal, Sparkles, MapPin, Check, X, ShieldCheck, Tag } from 'lucide-react';
+import { Filter, SlidersHorizontal, Sparkles, MapPin, Check, X, ShieldCheck, Tag, Clock, Truck } from 'lucide-react';
+import { getDeliveryEstimate } from './utils/deliveryEstimator';
 
 export default function App() {
   // Navigation State
@@ -775,42 +776,99 @@ export default function App() {
       />
 
       {/* Location Modal */}
-      {isLocationModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl space-y-4 text-left">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <h2 className="font-black text-base text-gray-900 flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-emerald-600" />
-                <span>Select Delivery PIN Code in Lucknow</span>
-              </h2>
-              <button onClick={() => setIsLocationModalOpen(false)} className="text-gray-400 hover:text-gray-700">
-                <X className="w-5 h-5" />
+      {isLocationModalOpen && (() => {
+        const modalEstimate = getDeliveryEstimate(selectedPincode);
+        return (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl space-y-4 text-left">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                <h2 className="font-black text-base text-gray-900 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-emerald-600" />
+                  <span>Select Delivery Location in Lucknow</span>
+                </h2>
+                <button onClick={() => setIsLocationModalOpen(false)} className="text-gray-400 hover:text-gray-700">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs text-gray-600 font-semibold block mb-1">Enter 6-digit Lucknow PIN code:</label>
+                  <input
+                    type="text"
+                    value={selectedPincode}
+                    onChange={(e) => setSelectedPincode(e.target.value)}
+                    placeholder="226026"
+                    maxLength={6}
+                    className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2.5 text-sm font-extrabold outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                  />
+                </div>
+
+                {/* Popular Lucknow PIN Code Quick Select Chips */}
+                <div>
+                  <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Quick Select Area:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      { pin: '226026', name: 'Behta Bazar' },
+                      { pin: '226028', name: 'Rajajipuram' },
+                      { pin: '226003', name: 'Chowk' },
+                      { pin: '226001', name: 'Hazratganj' },
+                      { pin: '226010', name: 'Gomti Nagar' },
+                      { pin: '226005', name: 'Alambagh' },
+                    ].map((loc) => (
+                      <button
+                        key={loc.pin}
+                        onClick={() => setSelectedPincode(loc.pin)}
+                        className={`text-[11px] font-bold px-2.5 py-1 rounded-xl border transition-all ${
+                          selectedPincode === loc.pin
+                            ? 'bg-emerald-700 text-white border-emerald-700 shadow-xs'
+                            : 'bg-gray-50 hover:bg-emerald-50 text-gray-700 border-gray-200'
+                        }`}
+                      >
+                        {loc.name} ({loc.pin})
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Real-time Delivery Estimate Card */}
+                <div className="bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-950 text-white p-4 rounded-2xl border border-emerald-700 shadow-md space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-amber-300 font-black text-xs uppercase tracking-tight">
+                      <Clock className="w-4 h-4 animate-pulse" />
+                      <span>Real-Time Delivery Estimator</span>
+                    </div>
+                    <span className="bg-amber-400 text-emerald-950 font-black text-[10px] px-2 py-0.5 rounded-full uppercase">
+                      {modalEstimate.statusBadge}
+                    </span>
+                  </div>
+
+                  <p className="font-extrabold text-sm text-white leading-snug">
+                    {modalEstimate.fullStatement}
+                  </p>
+
+                  <div className="flex items-center justify-between text-[11px] text-emerald-200 pt-1 border-t border-emerald-700/60 font-medium">
+                    <span className="flex items-center gap-1">
+                      <Truck className="w-3.5 h-3.5 text-amber-300" />
+                      <span>Dispatch from Behta Bazar Hub</span>
+                    </span>
+                    <span className="font-bold text-amber-300">
+                      {modalEstimate.timeWindowString}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsLocationModalOpen(false)}
+                className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs py-3 rounded-2xl shadow-md transition-all active:scale-95"
+              >
+                Confirm Location ({modalEstimate.areaName})
               </button>
             </div>
-
-            <div className="space-y-2">
-              <p className="text-xs text-gray-600 font-medium">Enter your 6-digit Lucknow PIN code:</p>
-              <input
-                type="text"
-                value={selectedPincode}
-                onChange={(e) => setSelectedPincode(e.target.value)}
-                placeholder="226026"
-                className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2 text-sm font-bold outline-none focus:border-emerald-500"
-              />
-              <p className="text-[11px] text-emerald-700 font-bold">
-                ✓ Express 12-Hour Home Delivery active for PIN {selectedPincode} (Behta Bazar Lucknow)
-              </p>
-            </div>
-
-            <button
-              onClick={() => setIsLocationModalOpen(false)}
-              className="w-full bg-emerald-700 text-white font-bold text-xs py-3 rounded-2xl"
-            >
-              Confirm Location
-            </button>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Footer (hidden during POS billing terminal mode) */}
       {currentView !== 'pos' && (

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { UserProfile, Order, Product, ThemeMode, LoyaltyTransaction } from '../types';
 import { generateInvoicePdf } from '../utils/generateInvoicePdf';
 import {
@@ -30,7 +31,8 @@ import {
   Check,
   Coins,
   Filter,
-  FileSpreadsheet
+  FileSpreadsheet,
+  ShoppingCart
 } from 'lucide-react';
 
 interface CustomerAccountViewProps {
@@ -58,6 +60,33 @@ export const CustomerAccountView: React.FC<CustomerAccountViewProps> = ({
   const [selectedOrderForModal, setSelectedOrderForModal] = useState<Order | null>(null);
   const [downloadingOrderId, setDownloadingOrderId] = useState<string | null>(null);
   const [downloadSuccessMsg, setDownloadSuccessMsg] = useState<string | null>(null);
+  const [reorderingOrderId, setReorderingOrderId] = useState<string | null>(null);
+  const [reorderToast, setReorderToast] = useState<{ id: string; count: number } | null>(null);
+
+  const handleReorderWithAnimation = (order: Order) => {
+    // Tactile haptic vibration feedback on supported mobile/touch devices
+    if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+      try {
+        navigator.vibrate([20, 35, 20]);
+      } catch {
+        // Fallback for browsers restricting vibration without user touch gesture
+      }
+    }
+
+    setReorderingOrderId(order.id);
+    const totalItemCount = order.items.reduce((acc, it) => acc + it.quantity, 0);
+    setReorderToast({ id: order.id, count: totalItemCount });
+
+    onReorder(order);
+
+    setTimeout(() => {
+      setReorderingOrderId(null);
+    }, 2200);
+
+    setTimeout(() => {
+      setReorderToast(null);
+    }, 4000);
+  };
 
   // Transaction History Filters
   const [txnFilter, setTxnFilter] = useState<'ALL' | 'EARNED' | 'REDEEMED' | 'BONUS'>('ALL');
@@ -695,6 +724,34 @@ export const CustomerAccountView: React.FC<CustomerAccountViewProps> = ({
           </div>
 
           <div className="space-y-4">
+            {/* Reorder Toast Notification Banner */}
+            <AnimatePresence>
+              {reorderToast && (
+                <motion.div
+                  initial={{ opacity: 0, y: -12, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ type: 'spring', stiffness: 350, damping: 22 }}
+                  className="bg-emerald-900 text-white p-3.5 rounded-2xl border border-emerald-700 shadow-lg flex items-center justify-between gap-3 text-xs"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 bg-emerald-700/90 rounded-xl text-amber-300 shadow-2xs">
+                      <ShoppingCart className="w-4 h-4 animate-bounce" />
+                    </div>
+                    <div>
+                      <p className="font-extrabold text-white text-xs">Items Restocked in Cart!</p>
+                      <p className="text-[11px] text-emerald-200">
+                        {reorderToast.count} items from Order #{reorderToast.id} added back to your cart.
+                      </p>
+                    </div>
+                  </div>
+                  <span className="bg-amber-400 text-emerald-950 font-black px-3 py-1 rounded-xl text-[10px] uppercase shadow-2xs shrink-0">
+                    Cart Updated
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {orders.map((o) => (
               <div key={o.id} className="p-4 bg-gray-50/80 rounded-2xl border border-gray-200 space-y-3 hover:border-emerald-300 transition-colors">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs border-b border-gray-200 pb-2 gap-2">
@@ -748,13 +805,45 @@ export const CustomerAccountView: React.FC<CustomerAccountViewProps> = ({
                       <span>{downloadingOrderId === o.id ? 'Generating...' : 'Download PDF Invoice'}</span>
                     </button>
 
-                    <button
-                      onClick={() => onReorder(o)}
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-1 bg-amber-500 hover:bg-amber-600 text-gray-950 font-black px-3.5 py-2 rounded-xl transition-colors shadow-xs text-xs"
+                    <motion.button
+                      whileTap={{ scale: 0.88, rotate: -3 }}
+                      whileHover={{ scale: 1.04 }}
+                      transition={{ type: 'spring', stiffness: 450, damping: 17 }}
+                      onClick={() => handleReorderWithAnimation(o)}
+                      className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 font-extrabold px-4 py-2 rounded-xl text-xs transition-all shadow-xs ${
+                        reorderingOrderId === o.id
+                          ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30 ring-2 ring-emerald-400'
+                          : 'bg-amber-500 hover:bg-amber-600 text-gray-950 shadow-amber-500/20'
+                      }`}
+                      title="Add all items from this order back into your active shopping cart"
                     >
-                      <RotateCcw className="w-3.5 h-3.5" />
-                      <span>Reorder</span>
-                    </button>
+                      <AnimatePresence mode="wait" initial={false}>
+                        {reorderingOrderId === o.id ? (
+                          <motion.div
+                            key="success"
+                            initial={{ scale: 0, rotate: -45 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            exit={{ scale: 0 }}
+                            transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+                            className="flex items-center gap-1"
+                          >
+                            <CheckCircle2 className="w-4 h-4 text-amber-300 animate-pulse" />
+                            <span>Added to Cart!</span>
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="reorder"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            exit={{ scale: 0 }}
+                            className="flex items-center gap-1.5"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            <span>Reorder</span>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.button>
                   </div>
                 </div>
               </div>

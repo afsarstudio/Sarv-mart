@@ -31,9 +31,9 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSelectPage, onOpenAiMo
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-12 py-6 sm:py-14 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center">
         {/* Left Column Text Content */}
-        <div className="lg:col-span-7 space-y-4 sm:space-y-6 text-left">
+        <div className="lg:col-span-7 space-y-4 sm:space-y-6 text-center lg:text-left flex flex-col items-center lg:items-start">
           {/* Top Badge */}
-          <div className="inline-flex flex-wrap items-center gap-2 bg-emerald-950/80 backdrop-blur-md border border-emerald-500/40 px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-2xl sm:rounded-full text-xs font-semibold text-amber-300 shadow-inner">
+          <div className="inline-flex flex-wrap items-center justify-center gap-2 bg-emerald-950/80 backdrop-blur-md border border-emerald-500/40 px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-2xl sm:rounded-full text-xs font-semibold text-amber-300 shadow-inner">
             <Sparkles className="w-4 h-4 text-amber-400 animate-spin-slow shrink-0" />
             <span className="text-[11px] sm:text-xs">Lucknow’s Premium Supermarket • Behta Bazar</span>
             <span className="bg-amber-400 text-emerald-950 px-2 py-0.5 text-[10px] font-black rounded-full uppercase shrink-0">
@@ -41,7 +41,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSelectPage, onOpenAiMo
             </span>
           </div>
 
-          <h1 className="text-fluid-h1 font-black tracking-tight leading-[1.1] text-white">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] text-white">
             Fresh Groceries & <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400">
               Daily Essentials
@@ -53,10 +53,10 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSelectPage, onOpenAiMo
           </p>
 
           {/* Flash Sale Countdown Bar */}
-          <div className="bg-emerald-950/60 border border-emerald-600/40 backdrop-blur-md p-3.5 rounded-2xl max-w-md flex items-center justify-between gap-4">
+          <div className="bg-emerald-950/60 border border-emerald-600/40 backdrop-blur-md p-3.5 rounded-2xl w-full max-w-md flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <Zap className="w-5 h-5 text-amber-400 fill-amber-400 animate-bounce" />
-              <div>
+              <div className="text-left">
                 <p className="text-xs font-extrabold text-amber-300 uppercase tracking-wider">Today's Flash Deals</p>
                 <p className="text-[11px] text-emerald-200">Up to 50% Off on Groceries</p>
               </div>
@@ -78,11 +78,11 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSelectPage, onOpenAiMo
           </div>
 
           {/* Action CTA Buttons */}
-          <div className="flex flex-wrap items-center gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row items-center gap-3 pt-2 w-full sm:w-auto">
             <button
               id="hero-btn-shop-now"
               onClick={() => onSelectPage('shop')}
-              className="flex items-center gap-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-emerald-950 font-black text-sm px-6 py-3.5 rounded-2xl shadow-xl shadow-amber-400/20 transition-all hover:scale-105 active:scale-95"
+              className="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-emerald-950 font-black text-sm px-6 py-3.5 rounded-2xl shadow-xl shadow-amber-400/20 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto"
             >
               <span>Explore Shop</span>
               <ArrowRight className="w-4 h-4" />
@@ -91,7 +91,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onSelectPage, onOpenAiMo
             <button
               id="hero-btn-offers"
               onClick={() => onSelectPage('offers')}
-              className="flex items-center gap-2 text-amber-300 hover:text-white font-bold text-xs px-4 py-3 rounded-2xl transition-colors"
+              className="flex items-center justify-center gap-2 text-amber-300 hover:text-white font-bold text-xs px-4 py-3 rounded-2xl transition-colors w-full sm:w-auto"
             >
               <Tag className="w-4 h-4" />
               <span>View Offers</span>

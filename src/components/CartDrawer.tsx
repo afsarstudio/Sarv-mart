@@ -70,10 +70,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-xs flex justify-end animate-fade-in">
-      <div className="bg-white w-full max-w-md h-full flex flex-col shadow-2xl">
+    <div className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-xs flex justify-end items-end sm:items-start animate-fade-in">
+      <div className="bg-white w-full sm:max-w-md h-[85vh] sm:h-full rounded-t-3xl sm:rounded-none flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="p-4 sm:p-5 bg-emerald-800 text-white flex items-center justify-between border-b border-emerald-700">
+        <div className="p-4 sm:p-5 bg-emerald-800 text-white flex items-center justify-between border-b border-emerald-700 rounded-t-3xl sm:rounded-none">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-emerald-700 text-amber-300 rounded-xl">
               <ShoppingBag className="w-5 h-5" />
@@ -260,7 +260,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 onClose();
                 onProceedToCheckout();
               }}
-              className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-extrabold py-3.5 px-4 rounded-2xl shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-between"
+              className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-extrabold py-3.5 px-4 rounded-2xl shadow-lg shadow-emerald-600/20 transition-all active:scale-[0.98] flex items-center justify-between"
             >
               <div className="text-left">
                 <p className="text-[10px] font-bold text-emerald-200 uppercase">Grand Total</p>

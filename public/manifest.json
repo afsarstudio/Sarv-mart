@@ -1,7 +1,7 @@
 {
   "short_name": "SarvMart",
-  "name": "SarvMart - Online Grocery Delivery",
-  "description": "SarvMart is a modern online grocery supermarket delivering fresh fruits, vegetables, dairy, household essentials, and daily needs within minutes in Behta Bazar, Lucknow.",
+  "name": "SarvMart - Smart Supermarket & POS",
+  "description": "Modern Supermarket, Grocery Ordering, POS Billing, Inventory Management and Admin Dashboard.",
   "start_url": "/",
   "background_color": "#0B6B43",
   "theme_color": "#0B6B43",

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ShoppingBag,
   ShoppingCart,
@@ -23,6 +23,7 @@ import {
 import { ProductCategory, StorePage, ViewMode } from '../types';
 import { STORE_DETAILS, INITIAL_CATEGORIES } from '../data/mockData';
 import { MegaMenu } from './MegaMenu';
+import { getDeliveryEstimate } from '../utils/deliveryEstimator';
 
 interface NavbarProps {
   currentView: ViewMode;
@@ -62,6 +63,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(new Date());
+    }, 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const deliveryEstimate = getDeliveryEstimate(selectedPincode, now);
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-xs transition-all">
@@ -83,9 +94,9 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end overflow-x-auto scrollbar-none py-0.5">
-          <div className="hidden sm:flex items-center gap-1 bg-emerald-700/80 px-2 py-0.5 rounded-full text-amber-200 font-semibold text-[10px] sm:text-[11px] whitespace-nowrap shrink-0">
+          <div className="hidden sm:flex items-center gap-1 bg-emerald-700/80 px-2.5 py-0.5 rounded-full text-amber-200 font-semibold text-[10px] sm:text-[11px] whitespace-nowrap shrink-0">
             <Truck className="w-3 h-3 text-amber-300 animate-pulse" />
-            <span>Delivery in 12 min</span>
+            <span>Delivery in {deliveryEstimate.timeWindowString}</span>
           </div>
 
           {/* Mode Switcher Pill */}
@@ -169,23 +180,49 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             </button>
 
-            {/* Location Picker */}
-            <button
-              id="nav-location-picker"
-              onClick={onOpenLocationModal}
-              className="hidden lg:flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100/80 text-emerald-900 border border-emerald-200/80 px-2.5 py-1.5 rounded-xl text-xs transition-colors"
-            >
-              <div className="p-1 bg-emerald-600 text-white rounded-lg">
-                <MapPin className="w-3.5 h-3.5" />
-              </div>
-              <div className="text-left leading-tight">
-                <p className="text-[9px] text-emerald-700 font-semibold uppercase">Delivering to</p>
-                <p className="font-bold text-gray-900 flex items-center gap-1 text-[11px]">
-                  <span>PIN {selectedPincode} (Behta Bazar)</span>
-                  <ChevronDown className="w-3 h-3 text-gray-500" />
-                </p>
-              </div>
-            </button>
+            {/* Location Picker & Delivery Time Estimator Container */}
+            <div className="hidden lg:flex items-center gap-2">
+              <button
+                id="nav-location-picker"
+                onClick={onOpenLocationModal}
+                className="flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100/80 text-emerald-900 border border-emerald-200/80 px-2.5 py-1.5 rounded-xl text-xs transition-colors shrink-0"
+              >
+                <div className="p-1 bg-emerald-600 text-white rounded-lg">
+                  <MapPin className="w-3.5 h-3.5" />
+                </div>
+                <div className="text-left leading-tight">
+                  <p className="text-[9px] text-emerald-700 font-semibold uppercase">Delivering to</p>
+                  <p className="font-bold text-gray-900 flex items-center gap-1 text-[11px]">
+                    <span>PIN {selectedPincode} ({deliveryEstimate.areaName})</span>
+                    <ChevronDown className="w-3 h-3 text-gray-500" />
+                  </p>
+                </div>
+              </button>
+
+              {/* Real-Time Delivery Time Estimator Pill Next to PIN code */}
+              <button
+                id="nav-delivery-time-estimator"
+                onClick={onOpenLocationModal}
+                className="flex items-center gap-2 bg-gradient-to-r from-emerald-50 via-teal-50 to-amber-50 hover:from-emerald-100 hover:to-amber-100 text-emerald-950 border border-emerald-300/90 px-2.5 py-1.5 rounded-xl text-xs transition-all shadow-2xs group shrink-0"
+                title={`${deliveryEstimate.fullStatement} (${deliveryEstimate.statusBadge})`}
+              >
+                <div className="relative p-1 bg-amber-400 text-emerald-950 rounded-lg shadow-2xs font-extrabold shrink-0 flex items-center justify-center">
+                  <Clock className="w-3.5 h-3.5 text-emerald-950 animate-pulse" />
+                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-600 rounded-full animate-ping" />
+                </div>
+                <div className="text-left leading-tight">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[9px] font-black text-emerald-800 uppercase tracking-tight">Real-Time Estimator</span>
+                    <span className="bg-emerald-800 text-amber-300 text-[8px] font-extrabold px-1.5 py-0.2 rounded-full uppercase">
+                      {deliveryEstimate.statusBadge}
+                    </span>
+                  </div>
+                  <p className="font-bold text-gray-900 text-[11px] group-hover:text-emerald-700 transition-colors whitespace-nowrap">
+                    Deliveries to <span className="text-emerald-700 font-extrabold">{deliveryEstimate.areaName}</span> arrive in <span className="text-amber-700 font-black">{deliveryEstimate.timeWindowString}</span>
+                  </p>
+                </div>
+              </button>
+            </div>
           </div>
 
           {/* Desktop Search Bar (Hidden on mobile, shown on sm+) */}
@@ -282,6 +319,26 @@ export const Navbar: React.FC<NavbarProps> = ({
               {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
+        </div>
+
+        {/* Mobile Full-Width Location & Real-Time Delivery Estimator Bar */}
+        <div className="block sm:hidden w-full mb-2">
+          <button
+            id="nav-mobile-delivery-estimator"
+            onClick={onOpenLocationModal}
+            className="w-full flex items-center justify-between bg-gradient-to-r from-emerald-50 via-teal-50 to-amber-50 border border-emerald-300/80 px-2.5 py-1.5 rounded-xl text-xs shadow-2xs"
+          >
+            <div className="flex items-center gap-1.5 min-w-0">
+              <MapPin className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+              <span className="font-extrabold text-gray-900 text-[11px] truncate">
+                PIN {selectedPincode} ({deliveryEstimate.areaName})
+              </span>
+            </div>
+            <div className="flex items-center gap-1 bg-amber-400 text-emerald-950 px-2 py-0.5 rounded-lg text-[10px] font-black shrink-0">
+              <Clock className="w-3 h-3 text-emerald-950 animate-pulse" />
+              <span>{deliveryEstimate.timeWindowString}</span>
+            </div>
+          </button>
         </div>
 
         {/* Mobile Full-Width Search Bar */}
